@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Water Cooler">
+<title>Water Cooler</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  :root {
+    --bg: #f5f4f0;
+    --surface: #ffffff;
+    --surface2: #eeecea;
+    --border: rgba(0,0,0,0.1);
+    --border2: rgba(0,0,0,0.18);
+    --text: #1a1a18;
+    --text2: #6b6a66;
+    --text3: #9a9994;
+    --teal: #1D9E75;
+    --teal-dark: #0F6E56;
+    --teal-light: #E1F5EE;
+    --teal-text: #085041;
+    --blue-light: #E6F1FB;
+    --blue-border: #B5D4F4;
+    --blue-text: #0C447C;
+    --amber-light: #FAEEDA;
+    --amber-border: #FAC775;
+    --amber-text: #633806;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1c1a;
+      --surface: #252523;
+      --surface2: #2e2e2b;
+      --border: rgba(255,255,255,0.1);
+      --border2: rgba(255,255,255,0.18);
+      --text: #f0efe9;
+      --text2: #9a9994;
+      --text3: #6b6a66;
+      --teal-light: #04342C;
+      --teal-text: #9FE1CB;
+      --blue-light: #042C53;
+      --blue-border: #185FA5;
+      --blue-text: #B5D4F4;
+      --amber-light: #412402;
+      --amber-border: #854F0B;
+      --amber-text: #FAC775;
+    }
+  }
+
+  html, body { height: 100%; background: var(--bg); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: var(--text); }
+
+  body { padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0) env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0); }
+
+  .app { max-width: 500px; margin: 0 auto; padding: 1.5rem 1rem 5rem; }
+
+  .header { margin-bottom: 1.75rem; }
+  .header h1 { font-size: 24px; font-weight: 600; color: var(--text); }
+  .header p { font-size: 14px; color: var(--text2); margin-top: 3px; }
+
+  .who-toggle { display: flex; background: var(--surface2); border-radius: var(--radius-sm); padding: 3px; gap: 3px; margin-bottom: 1.5rem; }
+  .who-btn { flex: 1; padding: 9px 12px; border-radius: 7px; border: none; font-size: 15px; font-weight: 500; cursor: pointer; background: transparent; color: var(--text2); transition: all 0.15s; }
+  .who-btn.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,0.12); }
+
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1.5rem; }
+  .stat { background: var(--surface2); border-radius: var(--radius-sm); padding: 0.9rem; }
+  .stat-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 5px; }
+  .stat-value { font-size: 28px; font-weight: 600; color: var(--text); line-height: 1; }
+  .stat-sub { font-size: 11px; color: var(--text2); margin-top: 3px; }
+
+  .jug-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1.25rem; }
+  .jug-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+  .jug-title { font-size: 15px; font-weight: 500; }
+  .count-controls { display: flex; align-items: center; gap: 14px; }
+  .count-btn { width: 36px; height: 36px; border-radius: var(--radius-sm); border: 0.5px solid var(--border2); background: var(--surface2); color: var(--text); font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.12s; user-select: none; }
+  .count-btn:active { background: var(--border2); }
+  .count-display { font-size: 22px; font-weight: 600; min-width: 30px; text-align: center; }
+  .jug-icons { display: flex; flex-wrap: wrap; gap: 6px; }
+  .jug-icon { font-size: 26px; transition: opacity 0.2s; }
+  .jug-icon.empty { opacity: 0.15; }
+
+  .low-warn { background: var(--amber-light); border: 0.5px solid var(--amber-border); border-radius: var(--radius-sm); padding: 0.65rem 1rem; font-size: 13px; color: var(--amber-text); display: flex; align-items: center; gap: 8px; margin-bottom: 1.25rem; }
+  .out-warn { background: #FCEBEB; border: 0.5px solid #F7C1C1; border-radius: var(--radius-sm); padding: 0.65rem 1rem; font-size: 13px; color: #791F1F; display: flex; align-items: center; gap: 8px; margin-bottom: 1.25rem; }
+
+  .section-label { font-size: 11px; font-weight: 500; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.75rem; }
+
+  .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1.75rem; }
+  .action-btn { padding: 1rem; border-radius: var(--radius); border: 0.5px solid var(--border2); background: var(--surface); font-size: 15px; font-weight: 500; color: var(--text); cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px; transition: background 0.12s, transform 0.1s; }
+  .action-btn:active { transform: scale(0.97); }
+  .action-btn .icon { font-size: 26px; }
+  .action-btn.swap { background: var(--blue-light); border-color: var(--blue-border); color: var(--blue-text); }
+  .action-btn.refill { background: var(--teal-light); border-color: var(--teal); color: var(--teal-text); }
+
+  .log-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .log-entry { display: flex; align-items: flex-start; gap: 12px; padding: 0.85rem 1rem; border-bottom: 0.5px solid var(--border); }
+  .log-entry:last-child { border-bottom: none; }
+  .log-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+  .log-who { font-size: 14px; font-weight: 500; color: var(--text); }
+  .log-desc { font-size: 13px; color: var(--text2); }
+  .log-time { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .log-empty { padding: 2rem; text-align: center; font-size: 14px; color: var(--text2); }
+
+  .clear-btn { width: 100%; margin-top: 1.5rem; padding: 0.7rem; background: transparent; border: 0.5px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; color: var(--text3); cursor: pointer; }
+  .clear-btn:active { background: var(--surface2); }
+
+  /* Modal */
+  .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 1.5rem; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+  .modal-bg.show { opacity: 1; pointer-events: all; }
+  .modal { background: var(--surface); border-radius: var(--radius); padding: 1.5rem; width: 100%; max-width: 320px; }
+  .modal h2 { font-size: 17px; font-weight: 600; margin-bottom: 0.5rem; }
+  .modal p { font-size: 14px; color: var(--text2); margin-bottom: 1.25rem; }
+  .modal-input { width: 100%; font-size: 22px; font-weight: 600; text-align: center; padding: 0.75rem; border: 0.5px solid var(--border2); border-radius: var(--radius-sm); background: var(--surface2); color: var(--text); margin-bottom: 1rem; }
+  .modal-input:focus { outline: none; border-color: var(--teal); }
+  .modal-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .modal-cancel { padding: 0.75rem; border: 0.5px solid var(--border2); border-radius: var(--radius-sm); background: transparent; font-size: 15px; color: var(--text2); cursor: pointer; }
+  .modal-confirm { padding: 0.75rem; border: none; border-radius: var(--radius-sm); background: var(--teal); font-size: 15px; font-weight: 500; color: #fff; cursor: pointer; }
+
+  /* Toast */
+  .toast { position: fixed; bottom: calc(env(safe-area-inset-bottom, 0px) + 24px); left: 50%; transform: translateX(-50%) translateY(80px); background: var(--teal-dark); color: var(--teal-light); padding: 11px 22px; border-radius: 50px; font-size: 14px; font-weight: 500; transition: transform 0.3s ease; z-index: 200; white-space: nowrap; }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="header">
+    <h1>💧 Water Cooler</h1>
+    <p>Jug tracker for the house</p>
+  </div>
+
+  <div class="who-toggle">
+    <button class="who-btn active" id="btn-me" onclick="setWho('Me')">Me</button>
+    <button class="who-btn" id="btn-wife" onclick="setWho('Wife')">Wife</button>
+  </div>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-label">On hand</div>
+      <div class="stat-value" id="stat-onhand">0</div>
+      <div class="stat-sub">full jugs</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Used</div>
+      <div class="stat-value" id="stat-used">0</div>
+      <div class="stat-sub">this month</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Swaps</div>
+      <div class="stat-value" id="stat-swaps">0</div>
+      <div class="stat-sub">total</div>
+    </div>
+  </div>
+
+  <div class="jug-card">
+    <div class="jug-row">
+      <div class="jug-title">Full jugs in stock</div>
+      <div class="count-controls">
+        <button class="count-btn" onclick="changeStock(-1)">−</button>
+        <span class="count-display" id="stock-num">0</span>
+        <button class="count-btn" onclick="changeStock(1)">+</button>
+      </div>
+    </div>
+    <div class="jug-icons" id="jug-icons"></div>
+  </div>
+
+  <div id="low-warn" class="low-warn" style="display:none">⚠️ Running low — time to order more jugs!</div>
+  <div id="out-warn" class="out-warn" style="display:none">🚨 Out of jugs! Order more ASAP.</div>
+
+  <div class="section-label">Actions</div>
+  <div class="action-grid">
+    <button class="action-btn swap" onclick="logSwap()">
+      <span class="icon">🔄</span>
+      Swapped jug
+    </button>
+    <button class="action-btn refill" onclick="openRefillModal()">
+      <span class="icon">📦</span>
+      Got jugs
+    </button>
+  </div>
+
+  <div class="section-label">Recent activity</div>
+  <div class="log-card" id="log-list">
+    <div class="log-empty">No activity yet — log your first swap!</div>
+  </div>
+
+  <button class="clear-btn" onclick="confirmClear()">Clear all data</button>
+</div>
+
+<!-- Refill Modal -->
+<div class="modal-bg" id="refill-modal">
+  <div class="modal">
+    <h2>📦 Got jugs?</h2>
+    <p>How many full jugs did you pick up?</p>
+    <input class="modal-input" type="number" id="refill-input" value="6" min="1" max="50">
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closeModal()">Cancel</button>
+      <button class="modal-confirm" onclick="confirmRefill()">Add jugs</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const KEY = 'wc-tracker-v1';
+let state = { stock: 6, totalSwaps: 0, monthUsed: 0, log: [], currentMonth: new Date().getMonth() };
+let who = 'Me';
+
+function load() {
+  try {
+    const saved = localStorage.getItem(KEY);
+    if (saved) state = JSON.parse(saved);
+    checkMonthReset();
+  } catch(e) {}
+  render();
+}
+
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e) {}
+}
+
+function checkMonthReset() {
+  const m = new Date().getMonth();
+  if (state.currentMonth !== m) { state.monthUsed = 0; state.currentMonth = m; save(); }
+}
+
+function setWho(w) {
+  who = w;
+  document.getElementById('btn-me').classList.toggle('active', w === 'Me');
+  document.getElementById('btn-wife').classList.toggle('active', w === 'Wife');
+}
+
+function changeStock(d) {
+  state.stock = Math.max(0, state.stock + d);
+  save(); render();
+}
+
+function logSwap() {
+  if (state.stock <= 0) { showToast('No jugs left! Get more first 🚨'); return; }
+  state.stock--;
+  state.totalSwaps++;
+  state.monthUsed++;
+  state.log.unshift({ type: 'swap', who, time: Date.now() });
+  if (state.log.length > 50) state.log.length = 50;
+  save(); render();
+  showToast(who === 'Me' ? 'Jug swapped 💪' : 'Thanks! Jug swapped 💧');
+}
+
+function openRefillModal() {
+  document.getElementById('refill-modal').classList.add('show');
+  document.getElementById('refill-input').focus();
+  document.getElementById('refill-input').select();
+}
+
+function closeModal() {
+  document.getElementById('refill-modal').classList.remove('show');
+}
+
+function confirmRefill() {
+  const n = parseInt(document.getElementById('refill-input').value) || 0;
+  if (n < 1) { showToast('Enter at least 1 jug'); return; }
+  state.stock += n;
+  state.log.unshift({ type: 'refill', who, count: n, time: Date.now() });
+  if (state.log.length > 50) state.log.length = 50;
+  closeModal();
+  save(); render();
+  showToast(`Added ${n} jug${n > 1 ? 's' : ''} to stock! 📦`);
+}
+
+function confirmClear() {
+  if (confirm('Clear all data and start fresh?')) {
+    state = { stock: 0, totalSwaps: 0, monthUsed: 0, log: [], currentMonth: new Date().getMonth() };
+    save(); render();
+    showToast('Data cleared');
+  }
+}
+
+function timeAgo(ts) {
+  const d = new Date(ts);
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' · ' +
+    d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+}
+
+function render() {
+  document.getElementById('stat-onhand').textContent = state.stock;
+  document.getElementById('stat-used').textContent = state.monthUsed;
+  document.getElementById('stat-swaps').textContent = state.totalSwaps;
+  document.getElementById('stock-num').textContent = state.stock;
+
+  const slots = Math.max(state.stock, Math.min(12, state.stock + 2));
+  let icons = '';
+  for (let i = 0; i < Math.min(slots, 12); i++) {
+    icons += `<span class="jug-icon${i >= state.stock ? ' empty' : ''}">🧴</span>`;
+  }
+  document.getElementById('jug-icons').innerHTML = icons;
+
+  document.getElementById('low-warn').style.display = (state.stock > 0 && state.stock <= 2) ? 'flex' : 'none';
+  document.getElementById('out-warn').style.display = state.stock === 0 ? 'flex' : 'none';
+
+  const log = document.getElementById('log-list');
+  if (!state.log.length) {
+    log.innerHTML = '<div class="log-empty">No activity yet — log your first swap!</div>';
+    return;
+  }
+  log.innerHTML = state.log.map(e => {
+    if (e.type === 'swap') return `<div class="log-entry"><span class="log-icon">🔄</span><div><div class="log-who">${e.who}</div><div class="log-desc">Swapped the water jug</div><div class="log-time">${timeAgo(e.time)}</div></div></div>`;
+    return `<div class="log-entry"><span class="log-icon">📦</span><div><div class="log-who">${e.who}</div><div class="log-desc">Added ${e.count} jug${e.count>1?'s':''} to stock</div><div class="log-time">${timeAgo(e.time)}</div></div></div>`;
+  }).join('');
+}
+
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+document.getElementById('refill-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+document.getElementById('refill-input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') confirmRefill();
+});
+
+load();
+</script>
+</body>
+</html>
